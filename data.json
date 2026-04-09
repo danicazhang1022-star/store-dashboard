@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-09 17:33:03",
+  "last_updated": "2026-04-09 17:54:28",
   "summary": {
     "today": {
       "date": "2026-04-09",
@@ -12,8 +12,16 @@
       "total_sales": 0,
       "transaction_count": 0
     },
+    "inventory": {
+      "total_items": 0,
+      "total_stock": 0,
+      "low_stock_count": 0,
+      "low_stock_items": []
+    },
     "top_salespeople": [],
-    "top_products": []
+    "top_products": [],
+    "slow_products": []
   },
-  "daily_sales": []
+  "daily_sales": [],
+  "inventory": []
 }
