@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>扭捏niunie 店铺销售仪表盘</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  /* 顶部 Header */
+  .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 16px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(102,126,234,0.4);
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header .subtitle { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+  .date-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+
+  /* Tab 切换 */
+  .tab-bar {
+    display: flex;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 6px 0;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .tab-btn.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+
+  /* 主内容 */
+  .main { padding: 16px; }
+
+  /* 概览卡片 */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .stat-card.highlight {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    grid-column: span 2;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 4px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .stat-card.highlight .stat-label { color: rgba(255,255,255,0.75); }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .stat-card.highlight .stat-value { color: white; font-size: 28px; }
+  .stat-sub {
+    font-size: 11px;
+    margin-top: 4px;
+    color: #aaa;
+  }
+  .stat-card.highlight .stat-sub { color: rgba(255,255,255,0.7); }
+  .trend-up { color: #e74c3c; }
+  .trend-down { color: #2ecc71; }
+
+  /* 图表卡片 */
+  .chart-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-title .icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+  .icon-blue { background: #e8f0fe; }
+  .icon-purple { background: #f3e8ff; }
+  .icon-pink { background: #fce4ec; }
+  .icon-green { background: #e8f5e9; }
+  .chart-container { position: relative; height: 180px; }
+
+  /* 排行榜 */
+  .rank-list { display: flex; flex-direction: column; gap: 8px; }
+  .rank-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .rank-1 { background: #FFD700; color: #8B6914; }
+  .rank-2 { background: #C0C0C0; color: #555; }
+  .rank-3 { background: #CD7F32; color: white; }
+  .rank-other { background: #f0f2f5; color: #888; }
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rank-sub { font-size: 11px; color: #aaa; margin-top: 1px; }
+  .rank-bar-wrap { width: 70px; flex-shrink: 0; }
+  .rank-bar-bg {
+    height: 6px;
+    background: #f0f2f5;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .rank-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+  }
+  .rank-amount {
+    font-size: 13px;
+    font-weight: 700;
+    color: #667eea;
+    flex-shrink: 0;
+    min-width: 52px;
+    text-align: right;
+  }
+
+  /* 滞销款 */
+  .slow-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .slow-item:last-child { border-bottom: none; }
+  .slow-name { font-size: 13px; color: #555; }
+  .slow-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #fff3e0;
+    color: #e65100;
+    font-weight: 600;
+  }
+  .zero-badge {
+    background: #fce4ec;
+    color: #c62828;
+  }
+
+  /* 周汇总表 */
+  .week-table { width: 100%; border-collapse: collapse; }
+  .week-table th {
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 600;
+    padding: 0 0 8px 0;
+    text-align: left;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .week-table th:not(:first-child) { text-align: right; }
+  .week-table td {
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f8f8;
+    vertical-align: middle;
+  }
+  .week-table td:not(:first-child) { text-align: right; font-weight: 600; }
+  .week-table tr:last-child td { border-bottom: none; }
+  .week-date { color: #888; font-size: 12px; }
+  .week-highlight td { color: #667eea; }
+
+  /* Tab 内容区 */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* 底部安全区 */
+  .safe-bottom { height: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>🧶 扭捏niunie</h1>
+      <div class="subtitle">店铺销售仪表盘</div>
+    </div>
+    <div class="date-badge" id="currentDate">2026-04-08</div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('day')">今日</button>
+    <button class="tab-btn" onclick="switchTab('week')">本周</button>
+    <button class="tab-btn" onclick="switchTab('month')">本月</button>
+    <button class="tab-btn" onclick="switchTab('rank')">款式排行</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- 今日 Tab -->
+  <div class="tab-content active" id="tab-day">
+    <div class="stats-grid">
+      <div class="stat-card highlight">
+        <div class="stat-label">今日销售额</div>
+        <div class="stat-value">¥3,280</div>
+        <div class="stat-sub">昨日 ¥2,650 &nbsp; <span class="trend-up">↑ 23.8%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">销售件数</div>
+        <div class="stat-value">12</div>
+        <div class="stat-sub">昨日 9件 <span class="trend-up">↑33%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">客单价</div>
+        <div class="stat-value">¥273</div>
+        <div class="stat-sub">今日均价</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-blue">📈</div>
+        近14天每日销售额
+      </div>
+      <div class="chart-container">
+        <canvas id="dayChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-purple">📦</div>
+        近14天销售件数
+      </div>
+      <div class="chart-container">
+        <canvas id="dayPcsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 本周 Tab -->
+  <div class="tab-content" id="tab-week">
+    <div class="stats-grid">
+      <div class="stat-card highlight">
+        <div class="stat-label">本周累计销售额</div>
+        <div class="stat-value">¥18,640</div>
+        <div class="stat-sub">上周 ¥16,200 &nbsp; <span class="trend-up">↑ 15.1%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">本周销售件数</div>
+        <div class="stat-value">67</div>
+        <div class="stat-sub">上周 58件 <span class="trend-up">↑15.5%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">日均销售额</div>
+        <div class="stat-value">¥2,663</div>
+        <div class="stat-sub">本周每天均值</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-blue">📊</div>
+        本周各日销售额
+      </div>
+      <div class="chart-container">
+        <canvas id="weekChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-green">📋</div>
+        本周逐日明细
+      </div>
+      <table class="week-table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>销售额</th>
+            <th>件数</th>
+            <th>客单价</th>
+          </tr>
+        </thead>
+        <tbody id="weekTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 本月 Tab -->
+  <div class="tab-content" id="tab-month">
+    <div class="stats-grid">
+      <div class="stat-card highlight">
+        <div class="stat-label">本月累计销售额</div>
+        <div class="stat-value">¥52,480</div>
+        <div class="stat-sub">上月 ¥45,300 &nbsp; <span class="trend-up">↑ 15.9%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">本月销售件数</div>
+        <div class="stat-value">194</div>
+        <div class="stat-sub">上月 168件 <span class="trend-up">↑15.5%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">月均客单价</div>
+        <div class="stat-value">¥270</div>
+        <div class="stat-sub">本月均值</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-blue">📈</div>
+        本月每日销售趋势
+      </div>
+      <div class="chart-container" style="height:200px">
+        <canvas id="monthChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-purple">📅</div>
+        近6个月汇总
+      </div>
+      <div class="chart-container">
+        <canvas id="month6Chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 款式排行 Tab -->
+  <div class="tab-content" id="tab-rank">
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-pink">🏆</div>
+        本月热销 TOP 10
+      </div>
+      <div class="rank-list" id="topRankList"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon icon-green">📊</div>
+        热销款销售额对比
+      </div>
+      <div class="chart-container" style="height:220px">
+        <canvas id="rankBarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">
+        <div class="icon" style="background:#fff3e0">⚠️</div>
+        本月滞销款（销量≤2件）
+      </div>
+      <div id="slowList"></div>
+    </div>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+
+<script>
+// ===== 模拟数据 =====
+const today = new Date(2026, 3, 8); // 4月8日
+
+// 近14天每日数据
+const last14Days = [];
+const salesData14 = [1820, 2150, 2680, 1950, 2430, 3100, 2760, 2050, 1890, 2340, 2910, 2650, 3280, 3280];
+const pcsData14   = [7,    8,    10,   7,    9,    11,   10,   8,    7,    9,    11,   9,    12,   12];
+for (let i = 13; i >= 0; i--) {
+  const d = new Date(today);
+  d.setDate(today.getDate() - i);
+  last14Days.push(`${d.getMonth()+1}/${d.getDate()}`);
+}
+
+// 本周数据（周一~今日）
+const weekDays   = ['04/06 周一','04/07 周二','04/08 周三'];
+const weekSales  = [5840, 9520, 3280];
+const weekPcs    = [21, 34, 12];
+const weekAvgPrc = weekSales.map((s,i) => Math.round(s/weekPcs[i]));
+
+// 本月每日数据（1~8号）
+const monthDays  = Array.from({length:8}, (_,i)=>`4/${i+1}`);
+const monthSales = [2100, 1850, 3200, 2680, 4100, 5840, 9520, 3280];
+
+// 近6月汇总
+const months6     = ['2025-11','2025-12','2026-01','2026-02','2026-03','2026-04*'];
+const months6Sales= [38200, 42500, 35800, 45300, 51200, 52480];
+const months6Pcs  = [141, 158, 133, 168, 189, 194];
+
+// 热销 TOP10
+const topProducts = [
+  { name: '蝴蝶结针织开衫', sku: 'NK-001', sales: 8400, pcs: 28 },
+  { name: '珍珠链条包', sku: 'BG-012', sales: 7200, pcs: 18 },
+  { name: '格纹阔腿裤', sku: 'PT-008', sales: 6800, pcs: 24 },
+  { name: '泡泡袖连衣裙', sku: 'DR-003', sales: 5600, pcs: 16 },
+  { name: '镂空针织背心', sku: 'NK-015', sales: 4900, pcs: 21 },
+  { name: '蜡染印花衬衫', sku: 'TS-022', sales: 4200, pcs: 15 },
+  { name: '百褶半身裙', sku: 'SK-007', sales: 3800, pcs: 19 },
+  { name: '流苏牛仔外套', sku: 'JK-018', sales: 3200, pcs: 11 },
+  { name: '草编托特包', sku: 'BG-031', sales: 2900, pcs: 14 },
+  { name: '印花短袖T恤', sku: 'TS-009', sales: 2400, pcs: 18 },
+];
+
+// 滞销款
+const slowProducts = [
+  { name: '麻料直筒裤 (卡其M)', sku: 'PT-042', pcs: 0 },
+  { name: '碎花抹胸裙 (白S)', sku: 'DR-019', pcs: 1 },
+  { name: '镂空钩针毛衣', sku: 'NK-028', pcs: 1 },
+  { name: '皮革腰带 (棕色)', sku: 'AC-005', pcs: 2 },
+  { name: '条纹休闲裤 (蓝L)', sku: 'PT-033', pcs: 2 },
+];
+
+// ===== Chart.js 通用配置 =====
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "PingFang SC"';
+Chart.defaults.font.size = 11;
+
+const lineOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: '#aaa', maxRotation: 0 } },
+    y: {
+      grid: { color: '#f5f5f5' },
+      ticks: { color: '#aaa', callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v }
+    }
+  },
+  elements: { point: { radius: 3, hoverRadius: 5 } }
+};
+
+const barOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: '#aaa', maxRotation: 0 } },
+    y: {
+      grid: { color: '#f5f5f5' },
+      ticks: { color: '#aaa', callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v }
+    }
+  }
+};
+
+// 渐变色工具
+function makeGradient(ctx, color1, color2) {
+  const g = ctx.createLinearGradient(0, 0, 0, 180);
+  g.addColorStop(0, color1);
+  g.addColorStop(1, color2);
+  return g;
+}
+
+// ===== 渲染图表 =====
+
+// 近14天销售额折线图
+const ctx1 = document.getElementById('dayChart').getContext('2d');
+new Chart(ctx1, {
+  type: 'line',
+  data: {
+    labels: last14Days,
+    datasets: [{
+      data: salesData14,
+      borderColor: '#667eea',
+      borderWidth: 2,
+      backgroundColor: makeGradient(ctx1, 'rgba(102,126,234,0.15)', 'rgba(102,126,234,0.01)'),
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: lineOpts
+});
+
+// 近14天件数折线
+const ctx2 = document.getElementById('dayPcsChart').getContext('2d');
+new Chart(ctx2, {
+  type: 'line',
+  data: {
+    labels: last14Days,
+    datasets: [{
+      data: pcsData14,
+      borderColor: '#764ba2',
+      borderWidth: 2,
+      backgroundColor: makeGradient(ctx2, 'rgba(118,75,162,0.15)', 'rgba(118,75,162,0.01)'),
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: {
+    ...lineOpts,
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#aaa', maxRotation: 0 } },
+      y: { grid: { color: '#f5f5f5' }, ticks: { color: '#aaa' } }
+    }
+  }
+});
+
+// 本周柱状图
+const ctx3 = document.getElementById('weekChart').getContext('2d');
+new Chart(ctx3, {
+  type: 'bar',
+  data: {
+    labels: weekDays,
+    datasets: [{
+      data: weekSales,
+      backgroundColor: ['rgba(102,126,234,0.8)', 'rgba(102,126,234,0.8)', 'rgba(118,75,162,1)'],
+      borderRadius: 8,
+      borderSkipped: false
+    }]
+  },
+  options: barOpts
+});
+
+// 填充本周表格
+const tbody = document.getElementById('weekTableBody');
+weekDays.forEach((d, i) => {
+  const tr = document.createElement('tr');
+  const isToday = i === weekDays.length - 1;
+  if (isToday) tr.classList.add('week-highlight');
+  tr.innerHTML = `
+    <td>${d}${isToday ? ' <span style="color:#667eea;font-size:10px">(今)</span>' : ''}</td>
+    <td>¥${weekSales[i].toLocaleString()}</td>
+    <td>${weekPcs[i]}件</td>
+    <td>¥${weekAvgPrc[i]}</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// 本月趋势折线
+const ctx4 = document.getElementById('monthChart').getContext('2d');
+new Chart(ctx4, {
+  type: 'line',
+  data: {
+    labels: monthDays,
+    datasets: [{
+      data: monthSales,
+      borderColor: '#667eea',
+      borderWidth: 2.5,
+      backgroundColor: makeGradient(ctx4, 'rgba(102,126,234,0.2)', 'rgba(102,126,234,0.02)'),
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: monthDays.map((_, i) => i === monthDays.length - 1 ? '#764ba2' : '#667eea'),
+      pointRadius: monthDays.map((_, i) => i === monthDays.length - 1 ? 5 : 3),
+    }]
+  },
+  options: lineOpts
+});
+
+// 近6月柱状图
+const ctx5 = document.getElementById('month6Chart').getContext('2d');
+new Chart(ctx5, {
+  type: 'bar',
+  data: {
+    labels: months6,
+    datasets: [{
+      data: months6Sales,
+      backgroundColor: months6.map((_, i) => i === 5 ? 'rgba(118,75,162,0.9)' : 'rgba(102,126,234,0.6)'),
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  },
+  options: barOpts
+});
+
+// TOP10 排行榜
+const maxSales = topProducts[0].sales;
+const rankList = document.getElementById('topRankList');
+topProducts.forEach((p, i) => {
+  const pct = Math.round(p.sales / maxSales * 100);
+  const numClass = i < 3 ? `rank-${i+1}` : 'rank-other';
+  rankList.innerHTML += `
+    <div class="rank-item">
+      <div class="rank-num ${numClass}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-sub">${p.sku} · ${p.pcs}件</div>
+      </div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="rank-amount">¥${(p.sales/1000).toFixed(1)}k</div>
+    </div>
+  `;
+});
+
+// TOP10 水平柱状图
+const ctx6 = document.getElementById('rankBarChart').getContext('2d');
+new Chart(ctx6, {
+  type: 'bar',
+  data: {
+    labels: topProducts.slice(0,8).map(p => p.name.length > 6 ? p.name.slice(0,6)+'…' : p.name),
+    datasets: [{
+      data: topProducts.slice(0,8).map(p => p.sales),
+      backgroundColor: topProducts.slice(0,8).map((_, i) =>
+        i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'rgba(102,126,234,0.7)'
+      ),
+      borderRadius: 5,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    ...barOpts,
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#888', font: { size: 10 }, maxRotation: 30 } },
+      y: {
+        grid: { color: '#f5f5f5' },
+        ticks: { color: '#aaa', callback: v => v >= 1000 ? (v/1000).toFixed(1)+'k' : v }
+      }
+    }
+  }
+});
+
+// 滞销款列表
+const slowDiv = document.getElementById('slowList');
+slowProducts.forEach(p => {
+  const isZero = p.pcs === 0;
+  slowDiv.innerHTML += `
+    <div class="slow-item">
+      <div>
+        <div class="slow-name">${p.name}</div>
+        <div style="font-size:11px;color:#bbb">${p.sku}</div>
+      </div>
+      <div class="slow-badge ${isZero ? 'zero-badge' : ''}">
+        ${isZero ? '0件 零销' : p.pcs + '件'}
+      </div>
+    </div>
+  `;
+});
+
+// ===== Tab 切换 =====
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// 更新日期显示
+const d = new Date();
+document.getElementById('currentDate').textContent =
+  `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+</script>
+
+</body>
+</html>

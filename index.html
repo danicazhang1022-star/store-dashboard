@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店铺智能管理系统 - 数据仪表盘</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'Inter',sans-serif;}</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <span class="ml-2 text-xl font-bold text-gray-900">店铺智能管理系统</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="last-updated" class="text-sm text-gray-500">加载中...</span>
+                    <button onclick="location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">刷新数据</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="loading" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+            <p class="mt-4 text-gray-600">正在加载数据...</p>
+        </div>
+
+        <div id="content" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 border">
+                    <p class="text-sm font-medium text-gray-600">今日销售额</p>
+                    <p id="today-sales" class="mt-2 text-3xl font-bold text-gray-900">¥0</p>
+                    <p id="today-orders" class="mt-2 text-sm text-gray-500">0 笔订单</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 border">
+                    <p class="text-sm font-medium text-gray-600">本月销售额</p>
+                    <p id="month-sales" class="mt-2 text-3xl font-bold text-gray-900">¥0</p>
+                    <p id="month-transactions" class="mt-2 text-sm text-gray-500">0 笔交易</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 border">
+                    <p class="text-sm font-medium text-gray-600">库存总量</p>
+                    <p id="total-stock" class="mt-2 text-3xl font-bold text-gray-900">0</p>
+                    <p id="inventory-items" class="mt-2 text-sm text-gray-500">0 个 SKU</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 border">
+                    <p class="text-sm font-medium text-gray-600">库存预警</p>
+                    <p id="low-stock" class="mt-2 text-3xl font-bold text-red-600">0</p>
+                    <p class="mt-2 text-sm text-gray-500">低于5件的商品</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">本月销售排行</h3>
+                <div id="sales-ranking" class="space-y-3"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 border">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">最近销售记录</h3>
+                    <div id="recent-sales" class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500">日期</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500">销售员</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500">金额</th></tr></thead>
+                            <tbody id="sales-table-body" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 border">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">库存预警商品</h3>
+                    <div id="low-stock-items" class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500">SKU</th><th class="px-4 py-2 text-left text-xs font-medium text-gray-500">名称</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500">库存</th></tr></thead>
+                            <tbody id="stock-table-body" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                const data = await response.json();
+                
+                document.getElementById('last-updated').textContent = '更新于: ' + data.last_updated;
+                document.getElementById('today-sales').textContent = '¥' + data.summary.today.total_sales.toLocaleString();
+                document.getElementById('today-orders').textContent = data.summary.today.order_count + ' 笔订单';
+                document.getElementById('month-sales').textContent = '¥' + data.summary.month.total_sales.toLocaleString();
+                document.getElementById('month-transactions').textContent = data.summary.month.transaction_count + ' 笔交易';
+                document.getElementById('total-stock').textContent = data.summary.inventory.total_stock.toLocaleString();
+                document.getElementById('inventory-items').textContent = data.summary.inventory.total_items + ' 个 SKU';
+                document.getElementById('low-stock').textContent = data.summary.inventory.low_stock_count;
+
+                // 销售排行
+                const rankingDiv = document.getElementById('sales-ranking');
+                data.summary.top_salespeople.forEach((person, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                    div.innerHTML = '<div class="flex items-center"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-medium mr-3">' + (index + 1) + '</span><span class="font-medium">' + person.name + '</span></div><span class="font-semibold">¥' + person.sales.toLocaleString() + '</span>';
+                    rankingDiv.appendChild(div);
+                });
+
+                // 最近销售
+                const salesBody = document.getElementById('sales-table-body');
+                data.daily_sales.slice(-10).reverse().forEach(sale => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td class="px-4 py-2 text-sm text-gray-900">' + sale.date + '</td><td class="px-4 py-2 text-sm text-gray-600">' + sale.salesperson + '</td><td class="px-4 py-2 text-sm text-right font-medium">¥' + sale.amount + '</td>';
+                    salesBody.appendChild(row);
+                });
+
+                // 库存预警
+                const stockBody = document.getElementById('stock-table-body');
+                data.summary.inventory.low_stock_items.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td class="px-4 py-2 text-sm text-gray-900">' + item.sku + '</td><td class="px-4 py-2 text-sm text-gray-600">' + item.name + '</td><td class="px-4 py-2 text-sm text-right font-medium text-red-600">' + item.stock + '</td>';
+                    stockBody.appendChild(row);
+                });
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+            } catch (error) {
+                document.getElementById('loading').innerHTML = '<p class="text-red-600">数据加载失败，请刷新重试</p>';
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>
