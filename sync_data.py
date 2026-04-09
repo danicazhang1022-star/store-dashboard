@@ -23,26 +23,21 @@ SHEETS = {
     "restock": "t00i2m",       # 补货导出
 }
 
-# MCP API 端点
-MCP_BASE_URL = "https://docs.qq.com/openapi/mcp"
+# 腾讯文档 API 端点
+API_BASE_URL = "https://docs.qq.com/api/v6/sheet"
 
 
-def mcp_call(tool_name, params):
-    """调用 MCP 工具"""
+def api_call(endpoint, params):
+    """调用腾讯文档 API"""
     headers = {
-        "Authorization": TOKEN,
+        "Authorization": f"Bearer {TOKEN}",
         "Content-Type": "application/json"
     }
     
-    payload = {
-        "name": tool_name,
-        "arguments": params
-    }
-    
     response = requests.post(
-        f"{MCP_BASE_URL}/call",
+        f"{API_BASE_URL}/{endpoint}",
         headers=headers,
-        json=payload,
+        json=params,
         timeout=60
     )
     response.raise_for_status()
@@ -52,15 +47,17 @@ def mcp_call(tool_name, params):
 def fetch_sheet_data(sheet_id):
     """获取工作表数据"""
     try:
-        result = mcp_call("smartsheet.get_sheet_data", {
-            "file_id": FILE_ID,
-            "sheet_id": sheet_id,
+        result = api_call("getSheetData", {
+            "fileID": FILE_ID,
+            "sheetID": sheet_id,
             "limit": 5000
         })
         
-        if isinstance(result, dict) and "data" in result:
-            return result["data"]
-        return result
+        if result.get("code") == 0:
+            return result.get("data", {})
+        else:
+            print(f"API 错误: {result.get('msg', '未知错误')}")
+            return None
     except Exception as e:
         print(f"获取工作表 {sheet_id} 失败: {e}")
         return None
