@@ -7,6 +7,7 @@ GitHub Actions 数据同步脚本
 import os
 import json
 import requests
+import subprocess
 from datetime import datetime, timedelta
 
 # ============ 配置 ============
@@ -23,41 +24,60 @@ SHEETS = {
     "restock": "t00i2m",       # 补货导出
 }
 
-# 腾讯文档 API 端点
-API_BASE_URL = "https://docs.qq.com/api/v6/sheet"
 
-
-def api_call(endpoint, params):
-    """调用腾讯文档 API"""
-    headers = {
-        "Authorization": f"Bearer {TOKEN}",
-        "Content-Type": "application/json"
-    }
+def mcp_call(tool_name, params):
+    """调用 MCP 工具"""
+    # 构建 mcporter 命令
+    cmd = [
+        "mcporter", "call", f"tencent-docs.{tool_name}"
+    ]
     
-    response = requests.post(
-        f"{API_BASE_URL}/{endpoint}",
-        headers=headers,
-        json=params,
-        timeout=60
-    )
-    response.raise_for_status()
-    return response.json()
+    # 添加参数
+    for key, value in params.items():
+        if isinstance(value, str):
+            cmd.append(f'{key}="{value}"')
+        else:
+            cmd.append(f'{key}={value}')
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+        
+        if result.returncode != 0:
+            print(f"MCP 调用失败: {result.stderr}")
+            return None
+        
+        # 解析 JSON 输出
+        lines = result.stdout.strip().split('\n')
+        for line in lines:
+            line = line.strip()
+            if line and line.startswith('{'):
+                try:
+                    return json.loads(line)
+                except:
+                    continue
+        return None
+    except Exception as e:
+        print(f"MCP 调用异常: {e}")
+        return None
 
 
 def fetch_sheet_data(sheet_id):
     """获取工作表数据"""
     try:
-        result = api_call("getSheetData", {
-            "fileID": FILE_ID,
-            "sheetID": sheet_id,
+        result = mcp_call("smartsheet.get_sheet_data", {
+            "file_id": FILE_ID,
+            "sheet_id": sheet_id,
             "limit": 5000
         })
         
-        if result.get("code") == 0:
-            return result.get("data", {})
-        else:
-            print(f"API 错误: {result.get('msg', '未知错误')}")
-            return None
+        if isinstance(result, dict) and "data" in result:
+            return result["data"]
+        return result
     except Exception as e:
         print(f"获取工作表 {sheet_id} 失败: {e}")
         return None

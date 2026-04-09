@@ -1,0 +1,19 @@
+{
+  "last_updated": "2026-04-09 17:33:03",
+  "summary": {
+    "today": {
+      "date": "2026-04-09",
+      "total_sales": 0,
+      "order_count": 0,
+      "transaction_count": 0
+    },
+    "month": {
+      "month": "2026-04",
+      "total_sales": 0,
+      "transaction_count": 0
+    },
+    "top_salespeople": [],
+    "top_products": []
+  },
+  "daily_sales": []
+}
