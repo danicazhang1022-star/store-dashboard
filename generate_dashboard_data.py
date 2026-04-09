@@ -6,80 +6,122 @@
 
 import json
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
+from collections import defaultdict
 
 FILE_ID = "DriTvwXLsoAA"
 
+# 正确的工作表 ID（与 auto_salary.py 一致）
 SHEETS = {
-    "daily_sales": "t00i2i",
-    "salary": "t00i2j",
-    "inventory": "t00i2k",
+    "daily_sales": "VtXdmr",    # 每日销售表
+    "salary": "VDPOkr",         # 薪资计算表
+    "inventory": "t00i2k",      # 库存管理表
 }
 
 
-def mcp_call(tool_name, **params):
-    """调用 MCP 工具"""
-    cmd = ["/Users/danica/.workbuddy/binaries/node/versions/22.12.0/bin/node", 
-           "/Users/danica/.workbuddy/binaries/node/versions/22.12.0/lib/node_modules/mcporter/dist/cli.js",
-           "call", f"tencent-sheetengine.{tool_name}"]
-    
-    for key, value in params.items():
-        if isinstance(value, str):
-            cmd.append(f'{key}="{value}"')
-        else:
-            cmd.append(f'{key}={value}')
-    
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-    
+def mcporter_call(tool_name, args):
+    """调用腾讯文档 MCP 工具（使用与 auto_salary.py 相同的格式）"""
+    cmd = [
+        "/Users/danica/.workbuddy/binaries/node/versions/22.12.0/bin/node",
+        "/Users/danica/.workbuddy/binaries/node/versions/22.12.0/lib/node_modules/mcporter/dist/cli.js",
+        "call", "tencent-docs", tool_name,
+        "--args", json.dumps(args, ensure_ascii=False)
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     if result.returncode != 0:
-        print(f"错误: {result.stderr}")
+        print(f"  ❌ MCP调用失败: {tool_name}")
+        print(f"     stderr: {result.stderr[:200]}")
         return None
-    
-    # 解析输出中的 JSON
-    lines = result.stdout.strip().split('\n')
-    for line in lines:
-        line = line.strip()
-        if line and line.startswith('{'):
-            try:
-                return json.loads(line)
-            except:
-                continue
+    try:
+        output = result.stdout.strip()
+        if output:
+            return json.loads(output)
+    except json.JSONDecodeError:
+        print(f"  ⚠️  MCP返回非JSON: {result.stdout[:200]}")
     return None
 
 
-def process_records(data, field_mapping):
-    """处理记录数据"""
-    if not data or "records" not in data:
-        return []
-    
-    records = []
-    for record in data["records"]:
-        fields = record.get("fields", {})
-        record_data = {"id": record.get("id", "")}
+def get_all_records(sheet_id, field_titles=None):
+    """获取工作表所有记录（自动分页）"""
+    all_records = []
+    offset = 0
+    while True:
+        args = {"file_id": FILE_ID, "sheet_id": sheet_id, "offset": offset, "limit": 100}
+        if field_titles:
+            args["field_titles"] = field_titles
         
-        for key, field_name in field_mapping.items():
-            value = fields.get(field_name)
-            
-            # 处理文本数组
-            if isinstance(value, list) and len(value) > 0:
-                if isinstance(value[0], dict) and "text" in value[0]:
-                    record_data[key] = value[0]["text"]
-                else:
-                    record_data[key] = value[0]
-            # 处理数字
-            elif isinstance(value, (int, float)):
-                record_data[key] = value
-            elif isinstance(value, str):
-                try:
-                    record_data[key] = float(value)
-                except:
-                    record_data[key] = value
-            else:
-                record_data[key] = value or ""
+        data = mcporter_call("smartsheet.list_records", args)
+        if not data or "records" not in data:
+            break
         
-        records.append(record_data)
+        records = data["records"]
+        if not records:
+            break
+        
+        all_records.extend(records)
+        if len(records) < 100:
+            break
+        
+        offset += 100
+        import time
+        time.sleep(1)  # 避免限流
     
-    return records
+    return all_records
+
+
+def parse_date(val):
+    """解析日期值，支持毫秒时间戳和日期字符串"""
+    if not val:
+        return None
+    if isinstance(val, list):
+        val = val[0] if val else None
+    if not val:
+        return None
+    
+    val_str = str(val).strip()
+    
+    # 毫秒时间戳（13位数字）
+    if val_str.isdigit() and len(val_str) >= 10:
+        try:
+            ts = int(val_str)
+            if ts > 1e10:
+                ts = ts / 1000
+            import datetime
+            tz_cst = datetime.timezone(datetime.timedelta(hours=8))
+            return datetime.datetime.fromtimestamp(ts, tz=tz_cst).strftime("%Y-%m-%d")
+        except Exception:
+            return None
+    
+    # 日期字符串
+    if len(val_str) >= 10 and val_str[4] == "-":
+        return val_str[:10]
+    
+    return None
+
+
+def parse_number(val):
+    """安全解析数字"""
+    if val is None:
+        return 0
+    if isinstance(val, (int, float)):
+        return val
+    if isinstance(val, list):
+        val = val[0] if val else 0
+    try:
+        return float(str(val).replace(",", "").replace("¥", "").strip())
+    except (ValueError, TypeError):
+        return 0
+
+
+def parse_text(val):
+    """解析文本字段"""
+    if not val:
+        return ""
+    if isinstance(val, list) and val:
+        if isinstance(val[0], dict):
+            return val[0].get("text", "")
+        return str(val[0])
+    return str(val)
 
 
 def main():
@@ -87,92 +129,95 @@ def main():
     print("生成仪表盘数据文件")
     print("=" * 50)
     
-    # 获取每日销售数据
-    print("\n1. 获取每日销售数据...")
-    sales_data = mcp_call("smartsheet.list_records", 
-                          file_id=FILE_ID, 
-                          sheet_id=SHEETS["daily_sales"], 
-                          limit=5000)
-    
-    sales_mapping = {
+    # 每日销售表字段
+    SALES_FIELDS = {
         "date": "日期",
+        "order_id": "订单号（第几单）",
         "salesperson": "销售员",
+        "amount": "实收金额",
         "product": "产品",
         "quantity": "数量",
-        "price": "单价",
-        "amount": "实收金额",
-        "order_id": "订单号",
-        "payment": "收款方式",
-        "note": "备注",
     }
-    daily_sales = process_records(sales_data, sales_mapping)
-    print(f"   获取到 {len(daily_sales)} 条销售记录")
     
-    # 获取薪资数据
-    print("\n2. 获取薪资数据...")
-    salary_data = mcp_call("smartsheet.list_records",
-                           file_id=FILE_ID,
-                           sheet_id=SHEETS["salary"],
-                           limit=5000)
-    
-    salary_mapping = {
-        "date": "日期",
-        "salesperson": "销售员",
-        "daily_sales": "当日销售额",
-        "commission_rate": "提成比例",
-        "big_order_bonus": "大单奖励",
-        "daily_salary": "固定日薪",
-        "commission_subtotal": "提成小计",
-        "daily_total": "当日薪资合计",
-    }
-    salary = process_records(salary_data, salary_mapping)
-    print(f"   获取到 {len(salary)} 条薪资记录")
-    
-    # 获取库存数据
-    print("\n3. 获取库存数据...")
-    inventory_data = mcp_call("smartsheet.list_records",
-                              file_id=FILE_ID,
-                              sheet_id=SHEETS["inventory"],
-                              limit=5000)
-    
-    inventory_mapping = {
+    # 库存表字段
+    INVENTORY_FIELDS = {
         "sku": "SKU",
         "name": "产品名称",
-        "category": "分类",
-        "size": "尺码",
-        "color": "颜色",
         "stock": "当前库存",
+        "category": "分类",
     }
-    inventory = process_records(inventory_data, inventory_mapping)
-    print(f"   获取到 {len(inventory)} 条库存记录")
+    
+    # 获取每日销售数据
+    print("\n1. 获取每日销售数据...")
+    sales_field_titles = list(SALES_FIELDS.values())
+    sales_records = get_all_records(SHEETS["daily_sales"], field_titles=sales_field_titles)
+    print(f"   获取到 {len(sales_records)} 条销售记录")
+    
+    # 处理销售记录
+    daily_sales = []
+    for rec in sales_records:
+        field_values = rec.get("field_values", {})
+        rec_date = parse_date(field_values.get(SALES_FIELDS["date"], ""))
+        if not rec_date:
+            continue
+        
+        daily_sales.append({
+            "date": rec_date,
+            "order_id": parse_text(field_values.get(SALES_FIELDS["order_id"], "")),
+            "salesperson": parse_text(field_values.get(SALES_FIELDS["salesperson"], "")),
+            "amount": parse_number(field_values.get(SALES_FIELDS["amount"], 0)),
+            "product": parse_text(field_values.get(SALES_FIELDS["product"], "")),
+            "quantity": parse_number(field_values.get(SALES_FIELDS["quantity"], 1)),
+        })
+    
+    # 获取库存数据
+    print("\n2. 获取库存数据...")
+    inventory_records = get_all_records(SHEETS["inventory"])
+    print(f"   获取到 {len(inventory_records)} 条库存记录")
+    
+    # 处理库存记录
+    inventory = []
+    for rec in inventory_records:
+        field_values = rec.get("field_values", {})
+        inventory.append({
+            "sku": parse_text(field_values.get(INVENTORY_FIELDS["sku"], "")),
+            "name": parse_text(field_values.get(INVENTORY_FIELDS["name"], "")),
+            "stock": int(parse_number(field_values.get(INVENTORY_FIELDS["stock"], 0))),
+            "category": parse_text(field_values.get(INVENTORY_FIELDS["category"], "")),
+        })
     
     # 计算统计数据
-    print("\n4. 计算统计数据...")
+    print("\n3. 计算统计数据...")
     today = datetime.now().strftime("%Y-%m-%d")
     current_month = datetime.now().strftime("%Y-%m")
     
+    # 30天前日期（用于滞销计算）
+    date_30d_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    
     # 今日销售
     today_sales = [s for s in daily_sales if s.get("date") == today]
-    today_total = sum(float(s.get("amount", 0) or 0) for s in today_sales)
+    today_total = sum(s.get("amount", 0) for s in today_sales)
     today_orders = len(set(s.get("order_id", "") for s in today_sales if s.get("order_id")))
     
     # 本月销售
     month_sales = [s for s in daily_sales if str(s.get("date", "")).startswith(current_month)]
-    month_total = sum(float(s.get("amount", 0) or 0) for s in month_sales)
+    month_total = sum(s.get("amount", 0) for s in month_sales)
+    
+    # 最近30天销售（用于滞销计算）
+    sales_30d = [s for s in daily_sales if s.get("date", "") >= date_30d_ago]
     
     # 库存统计
-    total_stock = sum(int(i.get("stock", 0) or 0) for i in inventory)
-    low_stock = [i for i in inventory if int(i.get("stock", 0) or 0) < 5]
+    total_stock = sum(i.get("stock", 0) for i in inventory)
+    low_stock = [i for i in inventory if i.get("stock", 0) < 5 and i.get("stock", 0) > 0]
     
-    # 销售排行
-    salesperson_stats = {}
+    # 销售员排行
+    salesperson_stats = defaultdict(lambda: {"sales": 0, "orders": set()})
     for sale in month_sales:
         sp = sale.get("salesperson", "未知")
-        if sp not in salesperson_stats:
-            salesperson_stats[sp] = {"sales": 0, "orders": set()}
-        salesperson_stats[sp]["sales"] += float(sale.get("amount", 0) or 0)
-        if sale.get("order_id"):
-            salesperson_stats[sp]["orders"].add(sale.get("order_id"))
+        if sp:
+            salesperson_stats[sp]["sales"] += sale.get("amount", 0)
+            if sale.get("order_id"):
+                salesperson_stats[sp]["orders"].add(sale.get("order_id"))
     
     top_salespeople = sorted(
         [{"name": k, "sales": v["sales"], "orders": len(v["orders"])} 
@@ -181,26 +226,58 @@ def main():
         reverse=True
     )[:10]
     
-    # 产品热销排行
-    product_stats = {}
+    # 款式热销 Top10（按销量排序）
+    product_stats = defaultdict(lambda: {"quantity": 0, "sales": 0})
     for sale in month_sales:
-        product = sale.get("product", "未知")
-        if product not in product_stats:
-            product_stats[product] = {"quantity": 0, "amount": 0}
-        product_stats[product]["quantity"] += int(sale.get("quantity", 0) or 0)
-        product_stats[product]["amount"] += float(sale.get("amount", 0) or 0)
+        product_name = sale.get("product", "")
+        if product_name:
+            # 尝试匹配 SKU
+            sku = ""
+            for inv in inventory:
+                if inv.get("name") == product_name:
+                    sku = inv.get("sku", "")
+                    break
+            
+            product_stats[product_name]["quantity"] += sale.get("quantity", 1)
+            product_stats[product_name]["sales"] += sale.get("amount", 0)
+            if "sku" not in product_stats[product_name]:
+                product_stats[product_name]["sku"] = sku
     
     top_products = sorted(
-        [{"name": k, "quantity": v["quantity"], "amount": v["amount"]} 
+        [{"name": k, "sku": v.get("sku", ""), "quantity": v["quantity"], "sales": v["sales"]} 
          for k, v in product_stats.items()],
-        key=lambda x: x["amount"],
+        key=lambda x: x["quantity"],
         reverse=True
     )[:10]
     
-    # 滞销商品（本月销量为0的库存商品）
-    sold_products = set(sale.get("product", "") for sale in month_sales)
-    unsold = [i for i in inventory if i.get("name") not in sold_products and int(i.get("stock", 0) or 0) > 0]
-    unsold_sorted = sorted(unsold, key=lambda x: int(x.get("stock", 0) or 0), reverse=True)[:10]
+    # 滞销排行（库存高但30天销量低）
+    # 计算每个商品的30天销量
+    product_sales_30d = defaultdict(int)
+    for sale in sales_30d:
+        product_name = sale.get("product", "")
+        if product_name:
+            product_sales_30d[product_name] += sale.get("quantity", 1)
+    
+    # 滞销商品：库存 > 10 且 30天销量 < 5
+    slow_products = []
+    for inv in inventory:
+        stock = inv.get("stock", 0)
+        name = inv.get("name", "")
+        sales_30d_count = product_sales_30d.get(name, 0)
+        
+        if stock > 0:
+            ratio = round(stock / max(sales_30d_count, 1), 1)  # 库销比
+            if stock >= 10 and sales_30d_count < 5:
+                slow_products.append({
+                    "sku": inv.get("sku", ""),
+                    "name": name,
+                    "stock": stock,
+                    "sales_30d": sales_30d_count,
+                    "ratio": ratio,
+                })
+    
+    # 按库销比排序（越高越滞销）
+    slow_products = sorted(slow_products, key=lambda x: x["ratio"], reverse=True)[:10]
     
     # 构建数据包
     data_package = {
@@ -225,15 +302,14 @@ def main():
             },
             "top_salespeople": top_salespeople,
             "top_products": top_products,
-            "unsold_products": unsold_sorted
+            "slow_products": slow_products,
         },
         "daily_sales": daily_sales[-50:],
-        "salary": salary[-50:],
         "inventory": inventory
     }
     
     # 保存文件
-    print("\n5. 保存数据文件...")
+    print("\n4. 保存数据文件...")
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(data_package, f, ensure_ascii=False, indent=2)
     print("   ✓ data.json 已保存")
@@ -244,7 +320,7 @@ def main():
     print(f"本月销售: ¥{month_total:.2f}")
     print(f"库存总量: {total_stock} 件")
     print(f"热销商品: {len(top_products)} 款")
-    print(f"滞销商品: {len(unsold_sorted)} 款")
+    print(f"滞销商品: {len(slow_products)} 款")
     print("=" * 50)
 
 
