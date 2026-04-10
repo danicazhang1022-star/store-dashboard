@@ -87,14 +87,14 @@ def get_all_records():
 
 
 def update_record_image(record_id, image_id):
-    """Update record with image_id in array format: [{"image_id": "xxx"}]."""
+    """Update record with image_id in plain string format."""
     data = mcporter_call("smartsheet.update_records", {
         "file_id": FILE_ID,
         "sheet_id": SHEET_ID,
         "records": [{
             "record_id": record_id,
             "field_values": {
-                IMAGE_FIELD_TITLE: [{"image_id": image_id}]  # MUST be array format!
+                IMAGE_FIELD_TITLE: image_id  # Plain string format (NOT array)
             }
         }]
     })

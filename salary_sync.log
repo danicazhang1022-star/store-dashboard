@@ -1,0 +1,32 @@
+===== Fri Apr 10 10:56:28 CST 2026 =====
+==================================================
+  扭捏niunie 店铺薪资自动计算
+==================================================
+
+📅 目标日期: 2026-04-10
+   每日销售表: VtXdmr
+   薪资计算表: VDPOkr
+
+📋 读取每日销售表字段 (sheet: VtXdmr)...
+  ❌ MCP调用失败: smartsheet.list_fields
+     stderr: [mcporter] tencent-docs appears offline (SSE error: TypeError: fetch failed: getaddrinfo ENOTFOUND docs.qq.com).
+[mcporter] tencent-docs appears offline (SSE error: TypeError: fetch failed: getaddrinf
+  ❌ 无法获取字段列表
+薪资计算完成
+
+===== Fri Apr 10 11:53:40 CST 2026 =====
+==================================================
+  扭捏niunie 店铺薪资自动计算
+==================================================
+
+📅 目标日期: 2026-04-10
+   每日销售表: VtXdmr
+   薪资计算表: VDPOkr
+
+📋 读取每日销售表字段 (sheet: VtXdmr)...
+  ❌ MCP调用失败: smartsheet.list_fields
+     stderr: [mcporter] tencent-docs appears offline (SSE error: TypeError: fetch failed: getaddrinfo ENOTFOUND docs.qq.com).
+[mcporter] tencent-docs appears offline (SSE error: TypeError: fetch failed: getaddrinf
+  ❌ 无法获取字段列表
+薪资计算完成
+

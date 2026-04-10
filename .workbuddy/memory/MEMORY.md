@@ -2,8 +2,16 @@
 
 ## 项目：店铺智能管理系统（腾讯文档智能表格）
 - file_id: `DriTvwXLsoAA`
-- 产品库 sheet_id: `t00i2h`
-- 包含6个工作表：产品库、每日销售、薪资计算、库存管理、入库记录、补货导出
+- 全部工作表（已确认 2026-04-10）：
+  - 每日销售: `VtXdmr`
+  - 薪资计算: `VDPOkr`
+  - 产品库: `t00i2h`
+  - 店铺库存管理: `gsnTK8`（注意不是 t00i2k）
+  - 补货导出: `se6Nev`
+  - 入库记录: `uTRfwR`
+  - 退款汇总: `trpfXq`
+  - Niunie销售仪表盘: `db_UB9Rz8`
+- Dashboard: https://danicazhang1022-star.github.io/store-dashboard/
 - 234张产品图片待上传到产品库
 
 ## 每日销售表录入方式
