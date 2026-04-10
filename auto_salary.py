@@ -190,7 +190,7 @@ def calc_commission(total_sales, staff_count):
     total_commission = total_sales * rate
     per_person = total_commission / staff_count if staff_count > 0 else total_commission
     # 向上取整
-    per_person = math.ceil(per_person)
+    per_person = round(per_person, 1)  # 保留一位小数
     return total_commission, per_person, rate
 
 
@@ -328,7 +328,7 @@ def summarize_day(sales_records, target_date):
         person_sales = sum((r.get("amount") or 0) for r in records)
         person_big_bonus = big_order_bonuses.get(sp, 0)
         person_daily_salary = calc_daily_salary(sp, person_sales)
-        person_total = int(per_person_commission + person_big_bonus + person_daily_salary)
+        person_total = round(per_person_commission + person_big_bonus + person_daily_salary, 1)  # 保留一位小数
         # 提成比例格式化：2% -> "2%", 2.5% -> "2.5%", 去掉末尾多余的0
         rate_percent = commission_rate * 100
         if rate_percent == int(rate_percent):
@@ -343,11 +343,11 @@ def summarize_day(sales_records, target_date):
             SALARY_FIELDS["daily_sales"]: int(person_sales),
             SALARY_FIELDS["staff_count"]: staff_count,
             SALARY_FIELDS["commission_rate"]: [{"text": commission_rate_str, "type": "text"}],
-            SALARY_FIELDS["commission_subtotal"]: int(per_person_commission),
+            SALARY_FIELDS["commission_subtotal"]: per_person_commission,  # 保留一位小数
             SALARY_FIELDS["big_order_bonus"]: person_big_bonus,
             SALARY_FIELDS["daily_salary"]: person_daily_salary,
             SALARY_FIELDS["total_salary"]: person_total,
-            SALARY_FIELDS["remark"]: [{"text": f"总提成¥{int(total_commission)}÷{staff_count}人，日薪档¥{person_daily_salary}", "type": "text"}],
+            SALARY_FIELDS["remark"]: [{"text": f"总提成¥{round(total_commission, 1)}÷{staff_count}人，日薪档¥{person_daily_salary}", "type": "text"}],
         }
 
     return results

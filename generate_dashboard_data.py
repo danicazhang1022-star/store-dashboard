@@ -15,7 +15,7 @@ FILE_ID = "DriTvwXLsoAA"
 SHEETS = {
     "daily_sales": "VtXdmr",    # 每日销售表
     "salary": "VDPOkr",         # 薪资计算表
-    "inventory": "t00i2k",      # 库存管理表
+    "inventory": "gsnTK8",      # 库存管理表（店铺库存管理）
 }
 
 

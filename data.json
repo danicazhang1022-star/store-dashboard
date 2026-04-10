@@ -1,27 +1,406 @@
 {
-  "last_updated": "2026-04-09 17:54:28",
+  "last_updated": "2026-04-10 12:57:47",
   "summary": {
     "today": {
-      "date": "2026-04-09",
+      "date": "2026-04-10",
       "total_sales": 0,
       "order_count": 0,
       "transaction_count": 0
     },
     "month": {
       "month": "2026-04",
-      "total_sales": 0,
-      "transaction_count": 0
+      "total_sales": 35301.25,
+      "transaction_count": 45
     },
     "inventory": {
-      "total_items": 0,
+      "total_items": 1,
       "total_stock": 0,
       "low_stock_count": 0,
       "low_stock_items": []
     },
-    "top_salespeople": [],
+    "top_salespeople": [
+      {
+        "name": "嘉悦",
+        "sales": 6593.08,
+        "orders": 11
+      },
+      {
+        "name": "里里",
+        "sales": 5200,
+        "orders": 7
+      }
+    ],
     "top_products": [],
     "slow_products": []
   },
-  "daily_sales": [],
-  "inventory": []
+  "daily_sales": [
+    {
+      "date": "2026-04-09",
+      "order_id": "0409-01",
+      "salesperson": "里里",
+      "amount": 340,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-08",
+      "order_id": "0408-01",
+      "salesperson": "嘉悦",
+      "amount": 350.24,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-08",
+      "order_id": "0408-01",
+      "salesperson": "嘉悦",
+      "amount": 323.84,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-01",
+      "salesperson": "里里",
+      "amount": 511,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-01",
+      "salesperson": "里里",
+      "amount": 358,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-01",
+      "salesperson": "里里",
+      "amount": 6,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-02",
+      "salesperson": "里里",
+      "amount": 350,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-03",
+      "salesperson": "里里",
+      "amount": 368,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-03",
+      "salesperson": "里里",
+      "amount": 376,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-03",
+      "salesperson": "里里",
+      "amount": 192,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-03",
+      "salesperson": "里里",
+      "amount": 262,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-04",
+      "salesperson": "里里",
+      "amount": 358,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-04",
+      "salesperson": "里里",
+      "amount": 295,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-04",
+      "salesperson": "里里",
+      "amount": 411,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-04",
+      "salesperson": "里里",
+      "amount": 232,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-04",
+      "salesperson": "里里",
+      "amount": 358,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-07",
+      "order_id": "0407-04",
+      "salesperson": "里里",
+      "amount": 3,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-05",
+      "order_id": "0405-01",
+      "salesperson": "",
+      "amount": 9125.3,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-05",
+      "order_id": "0405-02",
+      "salesperson": "",
+      "amount": 771,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-04",
+      "order_id": "0404-01",
+      "salesperson": "",
+      "amount": 9619.87,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-03",
+      "order_id": "0403-01",
+      "salesperson": "",
+      "amount": 3266,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-01",
+      "order_id": "0401-01",
+      "salesperson": "",
+      "amount": 701,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-09",
+      "order_id": "0409-02",
+      "salesperson": "里里",
+      "amount": 429,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-01",
+      "salesperson": "嘉悦",
+      "amount": 439,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-01",
+      "salesperson": "嘉悦",
+      "amount": 178,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-01",
+      "salesperson": "嘉悦",
+      "amount": 268,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-02",
+      "salesperson": "嘉悦",
+      "amount": 332,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-02",
+      "salesperson": "嘉悦",
+      "amount": 250,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-03",
+      "salesperson": "嘉悦",
+      "amount": 305,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-04",
+      "salesperson": "嘉悦",
+      "amount": 262,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-04",
+      "salesperson": "嘉悦",
+      "amount": 412,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-05",
+      "salesperson": "嘉悦",
+      "amount": 476,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-05",
+      "salesperson": "",
+      "amount": 0,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-06",
+      "salesperson": "嘉悦",
+      "amount": 242,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-06",
+      "salesperson": "嘉悦",
+      "amount": 305,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-07",
+      "salesperson": "",
+      "amount": 25,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-08",
+      "salesperson": "嘉悦",
+      "amount": 262,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-08",
+      "salesperson": "嘉悦",
+      "amount": 411,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-08",
+      "salesperson": "嘉悦",
+      "amount": 192,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-08",
+      "salesperson": "嘉悦",
+      "amount": 288,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-08",
+      "salesperson": "嘉悦",
+      "amount": 368,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0404-09",
+      "salesperson": "嘉悦",
+      "amount": 329,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-010",
+      "salesperson": "嘉悦",
+      "amount": 268,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-06",
+      "order_id": "0406-011",
+      "salesperson": "嘉悦",
+      "amount": 332,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-09",
+      "order_id": "0409-03",
+      "salesperson": "里里",
+      "amount": 351,
+      "product": "",
+      "quantity": 1
+    }
+  ],
+  "inventory": [
+    {
+      "sku": "",
+      "name": "",
+      "stock": 0,
+      "category": ""
+    }
+  ]
 }
