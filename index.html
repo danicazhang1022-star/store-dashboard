@@ -134,7 +134,7 @@
     <script>
         async function loadData() {
             try {
-                const response = await fetch('data.json');
+                const response = await fetch('data.json?t=' + Date.now());
                 const data = await response.json();
                 
                 document.getElementById('last-updated').textContent = '更新于: ' + data.last_updated;
