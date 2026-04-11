@@ -1,16 +1,16 @@
 {
-  "last_updated": "2026-04-10 12:57:47",
+  "last_updated": "2026-04-11 12:31:05",
   "summary": {
     "today": {
-      "date": "2026-04-10",
+      "date": "2026-04-11",
       "total_sales": 0,
       "order_count": 0,
-      "transaction_count": 0
+      "transaction_count": 1
     },
     "month": {
       "month": "2026-04",
-      "total_sales": 35301.25,
-      "transaction_count": 45
+      "total_sales": 38241.25,
+      "transaction_count": 56
     },
     "inventory": {
       "total_items": 1,
@@ -21,8 +21,8 @@
     "top_salespeople": [
       {
         "name": "嘉悦",
-        "sales": 6593.08,
-        "orders": 11
+        "sales": 9533.08,
+        "orders": 19
       },
       {
         "name": "里里",
@@ -34,54 +34,6 @@
     "slow_products": []
   },
   "daily_sales": [
-    {
-      "date": "2026-04-09",
-      "order_id": "0409-01",
-      "salesperson": "里里",
-      "amount": 340,
-      "product": "",
-      "quantity": 1
-    },
-    {
-      "date": "2026-04-08",
-      "order_id": "0408-01",
-      "salesperson": "嘉悦",
-      "amount": 350.24,
-      "product": "",
-      "quantity": 1
-    },
-    {
-      "date": "2026-04-08",
-      "order_id": "0408-01",
-      "salesperson": "嘉悦",
-      "amount": 323.84,
-      "product": "",
-      "quantity": 1
-    },
-    {
-      "date": "2026-04-07",
-      "order_id": "0407-01",
-      "salesperson": "里里",
-      "amount": 511,
-      "product": "",
-      "quantity": 1
-    },
-    {
-      "date": "2026-04-07",
-      "order_id": "0407-01",
-      "salesperson": "里里",
-      "amount": 358,
-      "product": "",
-      "quantity": 1
-    },
-    {
-      "date": "2026-04-07",
-      "order_id": "0407-01",
-      "salesperson": "里里",
-      "amount": 6,
-      "product": "",
-      "quantity": 1
-    },
     {
       "date": "2026-04-07",
       "order_id": "0407-02",
@@ -293,8 +245,8 @@
     {
       "date": "2026-04-06",
       "order_id": "0406-05",
-      "salesperson": "",
-      "amount": 0,
+      "salesperson": "嘉悦",
+      "amount": -3,
       "product": "",
       "quantity": 1
     },
@@ -391,6 +343,94 @@
       "order_id": "0409-03",
       "salesperson": "里里",
       "amount": 351,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-01",
+      "salesperson": "嘉悦",
+      "amount": 304,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-02",
+      "salesperson": "嘉悦",
+      "amount": 39,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-03",
+      "salesperson": "嘉悦",
+      "amount": 395,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-04",
+      "salesperson": "嘉悦",
+      "amount": 178,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-04",
+      "salesperson": "嘉悦",
+      "amount": 242,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-04",
+      "salesperson": "嘉悦",
+      "amount": 395,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-05",
+      "salesperson": "嘉悦",
+      "amount": 359,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-06",
+      "salesperson": "嘉悦",
+      "amount": 377,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-07",
+      "salesperson": "嘉悦",
+      "amount": 296,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-10",
+      "order_id": "0410-08",
+      "salesperson": "嘉悦",
+      "amount": 358,
+      "product": "",
+      "quantity": 1
+    },
+    {
+      "date": "2026-04-11",
+      "order_id": "",
+      "salesperson": "",
+      "amount": 0,
       "product": "",
       "quantity": 1
     }
